@@ -1,7 +1,7 @@
 package main
 
 import (
-	"sshConsole"
+	"github.com/514366607/sshConsole"
 )
 
 func main() {

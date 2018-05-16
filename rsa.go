@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/agent"
 )
 
 // ReadKey 传入文件地址取得key
@@ -34,15 +33,9 @@ func FormatPublicKey(buf []byte) ssh.AuthMethod {
 	return ssh.PublicKeys(signer)
 }
 
-// formatRsaConfig
+// formatConfig
 // 格式化配置
-func formatRsaConfig(user string, auths []ssh.AuthMethod) ssh.ClientConfig {
-	aconn, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
-	if err != nil {
-		panic(err)
-	}
-	auths = append(auths, ssh.PublicKeysCallback(agent.NewClient(aconn).Signers))
-	// auths = append(auths, ssh.Password(info.Passwd))
+func formatConfig(user string, auths []ssh.AuthMethod) ssh.ClientConfig {
 	config := ssh.ClientConfig{
 		User: user,
 		Auth: auths,

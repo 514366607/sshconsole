@@ -3,7 +3,6 @@ package sshconsole
 import (
 	"bufio"
 	"fmt"
-	"net"
 	"os"
 
 	"golang.org/x/crypto/ssh"
@@ -11,13 +10,8 @@ import (
 
 // SSHPW 账号密码连接
 func SSHPW(user, password, ip string, port int) *ssh.Client {
-	PassWd := []ssh.AuthMethod{ssh.Password(password)}
-	Conf := ssh.ClientConfig{User: user, Auth: PassWd}
-	Conf.HostKeyCallback = func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-		return nil
-	}
-
-	Client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", ip, port), &Conf)
+	config := formatConfig(user, []ssh.AuthMethod{ssh.Password(password)})
+	Client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", ip, port), &config)
 	if err != nil {
 		panic(err)
 	}
@@ -26,13 +20,7 @@ func SSHPW(user, password, ip string, port int) *ssh.Client {
 
 // SSHRsaFile rsa文件连接
 func SSHRsaFile(ip string, port int, user, keyPath string) *ssh.Client {
-
-	// 读取文件
-	privateKey := ReadKey([]string{keyPath})
-
-	var auths []ssh.AuthMethod
-	auths = append(auths, privateKey...)
-	config := formatRsaConfig(user, auths)
+	config := formatConfig(user, ReadKey([]string{keyPath}))
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", ip, port), &config)
 	if err != nil {
 		panic(err)
@@ -42,8 +30,7 @@ func SSHRsaFile(ip string, port int, user, keyPath string) *ssh.Client {
 
 // SSHRsaKey rsa密钥连接
 func SSHRsaKey(ip string, port int, user string, key ssh.AuthMethod) *ssh.Client {
-	var auths = []ssh.AuthMethod{key}
-	config := formatRsaConfig(user, auths)
+	config := formatConfig(user, []ssh.AuthMethod{key})
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", ip, port), &config)
 	if err != nil {
 		panic(err)
